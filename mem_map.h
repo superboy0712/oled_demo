@@ -11,9 +11,9 @@
 #ifndef MEM_MAP_H_
 #define MEM_MAP_H_
 
-#define OLED_ADDR_CMD_START		(void*)0x1000
-#define OLED_ADDR_CMD_END		(void*)0x11ff
-#define OLED_ADDR_DATA_START	(void*)0x1200
+#define OLED_ADDR_CMD_START		((void*)0x1000)
+#define OLED_ADDR_CMD_END		((void*)0x11ff)
+#define OLED_ADDR_DATA_START	((void*)0x1200)
 #define OLED_ADDR_DATA_END		(void*)0x13ff
 #define ADC_ADDR_START			(void*)0x1400
 #define ADC_ADDR_END			(void*)0x17ff
