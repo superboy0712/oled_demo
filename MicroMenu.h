@@ -14,11 +14,13 @@
 	#include <stdint.h>
 
 	#include "MenuConfig.h"
+	#include <inttypes.h>
 
 	/** Type define for a menu item. Menu items should be initialized via the helper
 	 *  macro \ref MENU_ITEM(), not created from this type directly in user-code.
 	 */
 	typedef const struct Menu_Item {
+		const uint8_t pos_x, pos_y;
 		const struct Menu_Item *Next; /**< Pointer to the next menu item of this menu item */
 		const struct Menu_Item *Previous; /**< Pointer to the previous menu item of this menu item */
 		const struct Menu_Item *Parent; /**< Pointer to the parent menu item of this menu item */
@@ -38,12 +40,12 @@
 	 *  \param[in] SelectFunc  Function callback to execute when the menu item is selected, or \c NULL for no callback.
 	 *  \param[in] EnterFunc   Function callback to execute when the menu item is entered, or \c NULL for no callback.
 	 */
-	#define MENU_ITEM(Name, Next, Previous, Parent, Child, SelectFunc, EnterFunc, Text) \
+	#define MENU_ITEM( Name, X_pos, Y_pos, Next, Previous, Parent, Child, SelectFunc, EnterFunc, Text) \
 		extern Menu_Item_t MENU_ITEM_STORAGE Next;     \
 		extern Menu_Item_t MENU_ITEM_STORAGE Previous; \
 		extern Menu_Item_t MENU_ITEM_STORAGE Parent;   \
 		extern Menu_Item_t MENU_ITEM_STORAGE Child;  \
-		Menu_Item_t MENU_ITEM_STORAGE Name = {&Next, &Previous, &Parent, &Child, SelectFunc, EnterFunc, Text}
+		Menu_Item_t Name MENU_ITEM_STORAGE = { X_pos, Y_pos, &Next, &Previous, &Parent, &Child, SelectFunc, EnterFunc, Text}
 
 	/** Relative navigational menu entry for \ref Menu_Navigate(), to move to the menu parent. */
 	#define MENU_PARENT         MENU_ITEM_READ_POINTER(&Menu_GetCurrentMenu()->Parent)
@@ -79,7 +81,7 @@
 	 *
 	 *  \ref WriteFunc  Pointer to a callback function to execute for each selected menu item.
 	 */
-	void Menu_SetGenericWriteCallback(void (*WriteFunc)(const char* Text));
+	void Menu_SetGenericWriteCallback(void (*WriteFunc)(uint8_t x, uint8_t y, const char* Text));
 
 	/** Enters the currently selected menu item, running its configured callback function (if any). */
 	void Menu_EnterCurrentItem(void);

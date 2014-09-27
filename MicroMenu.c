@@ -22,7 +22,7 @@ Menu_Item_t PROGMEM NULL_MENU = {0};
  *  if no menu-specific display function has been set
  *  in the select menu item.
  */
-static void (*MenuWriteFunc)(const char* Text) = NULL;
+static void (*MenuWriteFunc)(uint8_t x, uint8_t y, const char* Text) = NULL;
 
 /** \internal
  *  Pointer to the currently selected menu item.
@@ -43,7 +43,7 @@ void Menu_Navigate(Menu_Item_t* const NewMenu)
 	CurrentMenuItem = NewMenu;
 
 	if (MenuWriteFunc)
-		MenuWriteFunc(CurrentMenuItem->Text);
+		MenuWriteFunc(pgm_read_byte(&(CurrentMenuItem->pos_x)),pgm_read_byte(&(CurrentMenuItem->pos_y)),CurrentMenuItem->Text);
 
 	void (*SelectCallback)(void) = MENU_ITEM_READ_POINTER(&CurrentMenuItem->SelectCallback);
 
@@ -51,7 +51,7 @@ void Menu_Navigate(Menu_Item_t* const NewMenu)
 		SelectCallback();
 }
 
-void Menu_SetGenericWriteCallback(void (*WriteFunc)(const char* Text))
+void Menu_SetGenericWriteCallback(void (*WriteFunc)(uint8_t x, uint8_t y, const char* Text))
 {
 	MenuWriteFunc = WriteFunc;
 	Menu_Navigate(CurrentMenuItem);

@@ -30,7 +30,10 @@ static void Level1Item1_Enter(void)
 {
 	puts("ENTER");
 }
-
+static void genric_draw_fun(uint8_t x, uint8_t y, const char *str){
+	oled_goto_xy(x,y);
+	oled_putstr_P(str);
+}
 /** Example menu item specific select callback function, run when the associated menu item is selected. */
 static void Level1Item1_Select(void)
 {
@@ -42,20 +45,21 @@ static void Level1Item1_Select(void)
  *  \param[in] Text   Text of the selected menu to write, in \ref MENU_ITEM_STORAGE memory space
  */
 
-MENU_ITEM(Menu_1, Menu_2, Menu_3, NULL_MENU, Menu_1_1, Level1Item1_Select, NULL, "I love Zhang Yun!\n");
-MENU_ITEM(Menu_2, Menu_3, Menu_1, NULL_MENU, NULL_MENU, NULL, NULL, "2");
-MENU_ITEM(Menu_3, Menu_1, Menu_2, NULL_MENU, NULL_MENU, NULL, NULL, "3");
-MENU_ITEM(Menu_1_1, Menu_1_2, Menu_1_2, NULL_MENU, NULL_MENU, NULL, NULL, "1.1");
-MENU_ITEM(Menu_1_2, Menu_1_1, Menu_1_1, NULL_MENU, NULL_MENU, NULL, NULL, "1.2");
+MENU_ITEM( Menu_1, (50), (3), Menu_2, Menu_3, NULL_MENU, NULL_MENU, NULL, NULL, "I love Zhang Yun!\n");
+MENU_ITEM( Menu_2, (50), (4), Menu_3, Menu_1, NULL_MENU, NULL_MENU, NULL, NULL, "I am Second\n");
+MENU_ITEM( Menu_3, (50), (5), Menu_1, Menu_2, NULL_MENU, NULL_MENU, NULL, NULL, "I am Third\n");
+//MENU_ITEM(Menu_1_1, Menu_1_2, Menu_1_2, NULL_MENU, NULL_MENU, NULL, NULL, "1.1");
+//MENU_ITEM(Menu_1_2, Menu_1_1, Menu_1_1, NULL_MENU, NULL_MENU, NULL, NULL, "1.2");
 
 int main(void)
 {	/* Set up the default menu text write callback, and navigate to an absolute menu item entry. */
 		oled_init();
 		oled_clear();
 		oled_putstr_inverse("hello world!!\n");
-	Menu_SetGenericWriteCallback(oled_putstr_P);
+	Menu_SetGenericWriteCallback(genric_draw_fun);
 	Menu_Navigate(&Menu_1);
-	
+	Menu_Navigate(MENU_NEXT);
+	Menu_Navigate(MENU_NEXT);
 	while (1)
     { 
 	
