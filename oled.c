@@ -13,6 +13,7 @@
 #include "font_5x7.h"
 #include "util/delay.h"
 #include <stdio.h>
+#include "oled.h"
 /*					RD	WR	CS	DC
  * 	Write command 	H 	↑ 	L 	L
 *	Write data 		H 	↑ 	L	H
@@ -146,7 +147,11 @@ void oled_putstr( const char * str){
 	while(*str)
 		oled_putchar(*str++);
 }
-extern void oled_putstr_P( const char * str){
+void oled_putstr_inverse( const char * str){
+	while(*str)
+		oled_putchar_inverse(*str++);
+}
+void oled_putstr_P( const char * str){
 		char read = pgm_read_byte(str);
 		// Display buffer on LCD.
 		while(read){
@@ -155,6 +160,16 @@ extern void oled_putstr_P( const char * str){
 			read = pgm_read_byte(str);
 		}
 		
+}
+void oled_putstr_P_inverse( const char * str){
+	char read = pgm_read_byte(str);
+	// Display buffer on LCD.
+	while(read){
+		oled_putchar_inverse(read);
+		str++;
+		read = pgm_read_byte(str);
+	}
+	
 }
 void oled_clear(void){
 	current_col_address = 0;
@@ -205,9 +220,27 @@ int oled_putchar_printf(char var, FILE *stream){
 }
 
 void oled_putchar_inverse(char c){
-	oled_putchar(~c);
+	if(c == '\n'){
+		oled_goto_nextln();
+		return;
+	}
+	int i;
+	const char j = (c-' ');
+	current_col_address+=CHA_WIDTH;
+
+	if(current_col_address/CHA_WIDTH >= MAX_CHARS_A_LINE){
+		//current_col_address = 0;
+		oled_goto_nextln();
+	}
+
+
+	for(i = 0; i < 5; i++){
+		// pay attention, progmem read
+		oled_wr_d(~(pgm_read_byte(&font[(int)j][i])));
+	}
 }
 
+/*
 void oled_buffer_wr(
 		uint8_t col,
 		uint8_t row,
@@ -219,11 +252,12 @@ void oled_buffer_wr(
 		oled_disp_buffer[row*16+col] = *data;
 		data++;
 	}
-}
+}*/
+/*
 void oled_buffer_update(void){
 	uint8_t i;
 	// maybe need some aligning modifications
 	for (i = 0; i<128; i++){
 		oled_wr_d(oled_disp_buffer[i]);
 	}
-}
+}*/
