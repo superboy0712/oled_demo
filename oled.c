@@ -37,7 +37,7 @@
 volatile static uint8_t current_col_address = 0;// from from 0 to END_COL - START_COL
 volatile static uint8_t current_pag_address = 0;// from from 0 to END_PAG - START_PAGE
 // buffer ram, possibly locate in ext sram
-uint8_t oled_disp_buffer[128];
+//uint8_t oled_disp_buffer[128];
 
 //
 
@@ -92,65 +92,6 @@ void oled_wr_d(uint8_t data){
  }
 
 
-/*
-
-void oled_init(void){
-#ifdef _LCM_12864
-	// pin configuration
-	OLED_DATA_DDR = 0xff;
-	set_bit(OLED_CS_DDR, OLED_CS_BIT);
-	set_bit(OLED_WR_DDR, OLED_WR_BIT);
-	set_bit(OLED_DC_DDR, OLED_DC_BIT);
-	//
-#else
-	// enable xem function.
-	MCUCR |= (1<<SRE);        //Enable External Memory interface
-	SFIOR |= (1<<XMM2);       //Mask out higher 4 bits of address
-#endif
-	oled_wr_cmd(0xae); // display off
-	oled_wr_cmd(0xa1); //segment remap
-	oled_wr_cmd(0xda); //common pads hardware: alternative
-	oled_wr_cmd(0x12);
-	oled_wr_cmd(0xc8); //common output scan direction:com63~com0
-	oled_wr_cmd(0xa8); //multiplex ration mode:63
-	oled_wr_cmd(0x3f);
-	oled_wr_cmd(0xd5); //display divide ratio/osc. freq. mode
-	oled_wr_cmd(0x80);
-	oled_wr_cmd(0x81); //contrast control
-	oled_wr_cmd(0xff); // highest contrast
-	oled_wr_cmd(0xd9); //set pre-charge period
-	oled_wr_cmd(0x22);
-	//
-	oled_wr_cmd(0x20); //Set Memory Addressing Mode
-	oled_wr_cmd(0x10); // page mode
-	oled_wr_cmd(0x00);
-	oled_wr_cmd(0x1f);
-	oled_wr_cmd(0x10); // page mode
-
-	//
-	oled_wr_cmd(0x20); //Set Memory Addressing Mode
-	oled_wr_cmd(0x00); // page mode
-	oled_wr_cmd(0x21); // column
-	oled_wr_cmd(4);
-	oled_wr_cmd(123);
-	//
-	oled_wr_cmd(0x22); // page
-	oled_wr_cmd(0);
-	oled_wr_cmd(7);
-	//	oled_wr_cmd(0x40); // start line
-
-	oled_wr_cmd(0xdb); //VCOM deselect level mode
-	oled_wr_cmd(0x30);
-	oled_wr_cmd(0xad); //master configuration
-	oled_wr_cmd(0x00);
-	oled_wr_cmd(0xa4); //out follows RAM content
-	oled_wr_cmd(0xa6); //set normal display
-	oled_wr_cmd(0xaf); // display on
-	uint8_t i;
-	for(i = 0; i<128; i++)
-		oled_disp_buffer[i] = 0;
-}
-*/
 
 void oled_goto_xy(uint8_t col,uint8_t row){
 	// input: 0 to max - min.
@@ -192,28 +133,6 @@ void oled_putchar( const char c){
 		 oled_wr_d(pgm_read_byte(&font[(int)j][i]));
 	}
 }
-/*
-
-void oled_putchar(char data)
-{
-		
-	volatile char *addr_data= (char*) OLED_ADDR_DATA_START;		//pointer to write data
-	int loop_var=0;
-	char temp;
-		data -= ' ';
-		//POSITION OF DATA TO BE GIVEN IN MAIN PROGRAM BY CALLING goto function
-	
-	for (loop_var=0;loop_var<5;loop_var++)
-	{
-		temp=pgm_read_byte(&font[data][loop_var]);
-		*addr_data=temp;
-													//TO BE IMPLEMENTED AFETR TESTING FOR SINGLE CHARACTERS
-	}
-	// *addr_data=data;								//write data to selected location into RAM
-								
-}
-
-*/
 
 void oled_set_inverse(void){
 	oled_wr_cmd(0xa7);
@@ -265,7 +184,15 @@ void oled_clear(void){
 	oled_wr_cmd(0xaf); // on
 	oled_goto_xy(0,0);
 }
-
+void oled_clear_line(uint8_t ln){
+	// ln: 1 - 7
+	int i;
+	oled_goto_xy(0,ln);
+	for ( i = 0; i< 128; i++)
+	{
+		oled_wr_d(0);
+	}
+}
 /*
 void oled_clear(void)
 {
