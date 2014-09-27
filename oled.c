@@ -7,12 +7,12 @@
  *	Email			: yulongb@stud.ntnu.no
  *  Description		:
  *****************************************************************/
-#include "oled.h"
 #include "pin_layout.h"
 #include "mem_map.h"
 #include "helpFile.h"
 #include "font_5x7.h"
 #include "util/delay.h"
+#include <stdio.h>
 /*					RD	WR	CS	DC
  * 	Write command 	H 	↑ 	L 	L
 *	Write data 		H 	↑ 	L	H
@@ -26,18 +26,36 @@
 #define DC_LOW clr_bit(OLED_DC_PORT, OLED_DC_BIT)
 #endif
 // some Marcos
-#define START_COL 5
-#define END_COL 121
+#define START_COL 0
+#define END_COL 127
 #define START_PAGE 0
-#define END_PAGE 6
+#define END_PAGE 7
 #define LINE_LENGTH (END_COL - START_COL + 1)
-#define CHA_WIDTH 6
+#define CHA_WIDTH 5
 #define MAX_CHARS_A_LINE (LINE_LENGTH/CHA_WIDTH)
 // global var, representing the position.
 volatile static uint8_t current_col_address = 0;// from from 0 to END_COL - START_COL
 volatile static uint8_t current_pag_address = 0;// from from 0 to END_PAG - START_PAGE
 // buffer ram, possibly locate in ext sram
 uint8_t oled_disp_buffer[128];
+// forward declaration
+void oled_init(void);
+void oled_home(void);
+void oled_goto_xy(uint8_t x,uint8_t y);
+void oled_goto_nextln(void);
+void oled_clear(void);
+void oled_putchar( const char c);
+void oled_putchar_inverse(char c);
+void oled_putchar_buffer(char c);
+void oled_buffer_update(void);
+void oled_buffer_wr(uint8_t col, uint8_t row, uint8_t *data, uint8_t length);
+void oled_putstr( const char * str);
+void oled_wr_d(uint8_t data);
+void oled_wr_cmd(uint8_t cmd);
+void oled_set_normal(void);
+void oled_set_inverse(void);// whole
+int oled_putchar_printf(char var, FILE *stream);
+//
 #ifdef _LCM_12864
 void oled_wr_cmd(uint8_t cmd){
 	// write cmd to oled!! very important to add volatile
