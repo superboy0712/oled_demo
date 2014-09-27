@@ -29,7 +29,7 @@
 #define START_COL 0
 #define END_COL 127
 #define START_PAGE 0
-#define END_PAGE 7
+#define END_PAGE 6
 #define LINE_LENGTH (END_COL - START_COL + 1)
 #define CHA_WIDTH 5
 #define MAX_CHARS_A_LINE (LINE_LENGTH/CHA_WIDTH)
@@ -38,77 +38,61 @@ volatile static uint8_t current_col_address = 0;// from from 0 to END_COL - STAR
 volatile static uint8_t current_pag_address = 0;// from from 0 to END_PAG - START_PAGE
 // buffer ram, possibly locate in ext sram
 uint8_t oled_disp_buffer[128];
-// forward declaration
-void oled_init(void);
-void oled_home(void);
-void oled_goto_xy(uint8_t x,uint8_t y);
-void oled_goto_nextln(void);
-void oled_clear(void);
-void oled_putchar( const char c);
-void oled_putchar_inverse(char c);
-void oled_putchar_buffer(char c);
-void oled_buffer_update(void);
-void oled_buffer_wr(uint8_t col, uint8_t row, uint8_t *data, uint8_t length);
-void oled_putstr( const char * str);
-void oled_wr_d(uint8_t data);
-void oled_wr_cmd(uint8_t cmd);
-void oled_set_normal(void);
-void oled_set_inverse(void);// whole
-int oled_putchar_printf(char var, FILE *stream);
+
 //
-#ifdef _LCM_12864
+
 void oled_wr_cmd(uint8_t cmd){
 	// write cmd to oled!! very important to add volatile
 	/*volatile char * const addr = OLED_ADDR_CMD_START;
 	*addr = cmd;*/
-	CS_LOW;
-	DC_LOW;
-	WR_LOW;
-	asm("nop");
-	asm("nop");
-
-	OLED_DATA_PORT = cmd;
-	asm("nop");
-	asm("nop");
-
-	WR_HIGH;
-	asm("nop");
-}
-
-void oled_wr_d(uint8_t data){
-	// write cmd to oled!! very important to add volatile
-	/*volatile char * const addr = OLED_ADDR_DATA_START;
-	*addr = data;*/
-	CS_LOW;
-	DC_HIGH;
-	WR_LOW;
-	asm("nop");
-	asm("nop");
-
-	OLED_DATA_PORT = data;
-	asm("nop");
-	asm("nop");
-
-	WR_HIGH;
-	asm("nop");
-}
-#else
-void oled_wr_cmd(uint8_t cmd){
-	// write cmd to oled!! very important to add volatile
-	/*volatile char * const addr = OLED_ADDR_CMD_START;
-	*addr = cmd;*/
-	char * const addr = OLED_ADDR_CMD_START;
+	volatile uint8_t *  addr = (uint8_t *)OLED_ADDR_CMD_START;
 	*addr = cmd;
 }
 
+
+
 void oled_wr_d(uint8_t data){
 	// write cmd to oled!! very important to add volatile
 	/*volatile char * const addr = OLED_ADDR_DATA_START;
 	*addr = data;*/
-	char * const addr = OLED_ADDR_DATA_START;
+	volatile uint8_t * const addr = (uint8_t *)OLED_ADDR_DATA_START;
 		*addr = data;
 }
-#endif
+
+ 
+ void oled_init(void)
+ {
+ 	MCUCR |= (1<<SRE);        //Enable External Memory interface
+ 	SFIOR |= (1<<XMM2);       //Mask out higher 4 bits of address
+ 	volatile uint8_t *addr= (uint8_t *) OLED_ADDR_CMD_START;		//selcet command mode
+ 	
+ 	//code copied from datasheet
+ 	*addr=0xae;				//turn display off
+ 	*addr=0xa1;			//column addr 127 is mapped to seg0
+ 	*addr=0xda;				//com pin configuration
+ 	*addr=0x12;				//com pin config=alternative
+ 	*addr=0xc8;				//o/p scan direction com63 to com0
+ 	*addr=0xa8;				//multiplex ratio config
+ 	*addr=0x3f;				//ratio=63
+ 	*addr=0xd5;				//dclck ratio
+ 	*addr=0x80;				//divide ratio and oscl. frequency
+ 	*addr=0x81;				//contrast control
+ 	*addr=0x50;				//value of contrast is 50h
+ 	*addr=0xd9;				//set pre-charge period
+ 	*addr=0x21;				//value =21
+ 	*addr=0x20;				//set memory addressing mode
+ 	*addr=0x00;				//horz addressing mode
+ 	*addr=0xdb;				//vcom de-select level mode
+ 	*addr=0x30;				//value=0.83vcc
+ 	*addr=0xad;				//master configuration
+ 	*addr=0x00;				//select extrenal iref
+ 	*addr=0xa4;				//out follows ram content
+ 	*addr=0xa6;				//set normal display
+ 	*addr=0xaf;				//display on
+ }
+
+
+/*
 
 void oled_init(void){
 #ifdef _LCM_12864
@@ -137,27 +121,23 @@ void oled_init(void){
 	oled_wr_cmd(0xd9); //set pre-charge period
 	oled_wr_cmd(0x22);
 	//
-/*
 	oled_wr_cmd(0x20); //Set Memory Addressing Mode
 	oled_wr_cmd(0x10); // page mode
 	oled_wr_cmd(0x00);
 	oled_wr_cmd(0x1f);
 	oled_wr_cmd(0x10); // page mode
-*/
 
 	//
 	oled_wr_cmd(0x20); //Set Memory Addressing Mode
 	oled_wr_cmd(0x00); // page mode
-	/*oled_wr_cmd(0x21); // column
+	oled_wr_cmd(0x21); // column
 	oled_wr_cmd(4);
 	oled_wr_cmd(123);
 	//
 	oled_wr_cmd(0x22); // page
 	oled_wr_cmd(0);
 	oled_wr_cmd(7);
-	*/
-//	oled_wr_cmd(0x40); // start line
-
+	//	oled_wr_cmd(0x40); // start line
 
 	oled_wr_cmd(0xdb); //VCOM deselect level mode
 	oled_wr_cmd(0x30);
@@ -170,6 +150,7 @@ void oled_init(void){
 	for(i = 0; i<128; i++)
 		oled_disp_buffer[i] = 0;
 }
+*/
 
 void oled_goto_xy(uint8_t col,uint8_t row){
 	// input: 0 to max - min.
@@ -191,13 +172,16 @@ void oled_goto_nextln(void){
 		current_pag_address = 0;
 	oled_goto_xy(0, current_pag_address);
 }
-
 void oled_putchar( const char c){
+	if(c == '\n'){
+		oled_goto_nextln();
+		return;
+	}
 	int i;
 	const char j = (c-' ');
 	current_col_address+=CHA_WIDTH;
 
-	if(current_col_address/CHA_WIDTH >= MAX_CHARS_A_LINE-2){
+	if(current_col_address/CHA_WIDTH >= MAX_CHARS_A_LINE){
 		//current_col_address = 0;
 		oled_goto_nextln();
 	}
@@ -208,6 +192,28 @@ void oled_putchar( const char c){
 		 oled_wr_d(pgm_read_byte(&font[(int)j][i]));
 	}
 }
+/*
+
+void oled_putchar(char data)
+{
+		
+	volatile char *addr_data= (char*) OLED_ADDR_DATA_START;		//pointer to write data
+	int loop_var=0;
+	char temp;
+		data -= ' ';
+		//POSITION OF DATA TO BE GIVEN IN MAIN PROGRAM BY CALLING goto function
+	
+	for (loop_var=0;loop_var<5;loop_var++)
+	{
+		temp=pgm_read_byte(&font[data][loop_var]);
+		*addr_data=temp;
+													//TO BE IMPLEMENTED AFETR TESTING FOR SINGLE CHARACTERS
+	}
+	// *addr_data=data;								//write data to selected location into RAM
+								
+}
+
+*/
 
 void oled_set_inverse(void){
 	oled_wr_cmd(0xa7);
@@ -221,20 +227,32 @@ void oled_putstr( const char * str){
 	while(*str)
 		oled_putchar(*str++);
 }
+extern void oled_putstr_P( const char * str){
+		char read = pgm_read_byte(str);
+		// Display buffer on LCD.
+		while(read){
+			oled_putchar(read);
+			str++;
+			read = pgm_read_byte(str);
+		}
+		
+}
 void oled_clear(void){
 	current_col_address = 0;
 	current_pag_address = 0;
 	oled_wr_cmd(0xae); // off
 	//
+	oled_wr_cmd(0x20);
+	oled_wr_cmd(0);
 	oled_wr_cmd(0x21);
-	oled_wr_cmd(1);
-	oled_wr_cmd(126);
+	oled_wr_cmd(0);
+	oled_wr_cmd(127);
 	oled_wr_cmd(0x22);
 	oled_wr_cmd(0);
 	oled_wr_cmd(7);
 	oled_wr_cmd(0x40);
 	int temp;
-	for(temp = 0; temp < 8*126; temp++){
+	for(temp = 0; temp < 8*128; temp++){
 		oled_wr_d(0x00);
 	}
 	oled_wr_cmd(0x21);
@@ -245,7 +263,39 @@ void oled_clear(void){
 	oled_wr_cmd(END_PAGE);
 	oled_wr_cmd(0x7c);
 	oled_wr_cmd(0xaf); // on
+	oled_goto_xy(0,0);
 }
+
+/*
+void oled_clear(void)
+{
+	volatile uint8_t *addr_cmd=(uint8_t*)OLED_ADDR_CMD_START;
+	volatile uint8_t *addr_data=(uint8_t*)OLED_ADDR_DATA_START;
+	uint8_t loop_var_row=0,loop_var_col,temp_column=0;
+	for(loop_var_row=0xB0;loop_var_row<0xB8;loop_var_row++)
+	{
+		*addr_cmd=loop_var_row;					//SELECT PAGE TO BE CLEARED
+		_delay_ms(10);
+		for(loop_var_col=0;loop_var_col<128;loop_var_col++)
+		{
+			/*temp_column=(loop_var_col & 0x0F);					//clear upper 4 bits
+			*addr_cmd=(temp_column);
+			_delay_ms(10);
+			temp_column=(loop_var_col>>4);						//move higher 4 bytes to right
+			temp_column=(loop_var_col & 0x0F);					//clear upper 4 bits
+			temp_column=(temp_column | 0x10);					//MAKE D4 1
+			*addr_cmd=(temp_column);
+			_delay_ms(10);
+			*/
+	//		*addr_data=0x00;
+	/*	_delay_ms(10);									//FILL 0x00 IN ALL BITS OF RAM
+		}
+	_delay_ms(100);
+	}
+	
+	
+}
+*/
 
 int oled_putchar_printf(char var, FILE *stream){
 	if(var == '\r'||var =='\n'){
