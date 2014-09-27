@@ -193,36 +193,6 @@ void oled_clear_line(uint8_t ln){
 		oled_wr_d(0);
 	}
 }
-/*
-void oled_clear(void)
-{
-	volatile uint8_t *addr_cmd=(uint8_t*)OLED_ADDR_CMD_START;
-	volatile uint8_t *addr_data=(uint8_t*)OLED_ADDR_DATA_START;
-	uint8_t loop_var_row=0,loop_var_col,temp_column=0;
-	for(loop_var_row=0xB0;loop_var_row<0xB8;loop_var_row++)
-	{
-		*addr_cmd=loop_var_row;					//SELECT PAGE TO BE CLEARED
-		_delay_ms(10);
-		for(loop_var_col=0;loop_var_col<128;loop_var_col++)
-		{
-			/*temp_column=(loop_var_col & 0x0F);					//clear upper 4 bits
-			*addr_cmd=(temp_column);
-			_delay_ms(10);
-			temp_column=(loop_var_col>>4);						//move higher 4 bytes to right
-			temp_column=(loop_var_col & 0x0F);					//clear upper 4 bits
-			temp_column=(temp_column | 0x10);					//MAKE D4 1
-			*addr_cmd=(temp_column);
-			_delay_ms(10);
-			*/
-	//		*addr_data=0x00;
-	/*	_delay_ms(10);									//FILL 0x00 IN ALL BITS OF RAM
-		}
-	_delay_ms(100);
-	}
-	
-	
-}
-*/
 
 int oled_putchar_printf(char var, FILE *stream){
 	if(var == '\r'||var =='\n'){
