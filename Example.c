@@ -45,9 +45,9 @@ static void Level1Item1_Select(void)
  *  \param[in] Text   Text of the selected menu to write, in \ref MENU_ITEM_STORAGE memory space
  */
 
-MENU_ITEM( Menu_1, (50), (3), Menu_2, Menu_3, NULL_MENU, NULL_MENU, NULL, NULL, "I love Zhang Yun!\n");
-MENU_ITEM( Menu_2, (50), (4), Menu_3, Menu_1, NULL_MENU, NULL_MENU, NULL, NULL, "I am Second\n");
-MENU_ITEM( Menu_3, (50), (5), Menu_1, Menu_2, NULL_MENU, NULL_MENU, NULL, NULL, "I am Third\n");
+MENU_ITEM( Menu_1, (5), (2), Menu_2, Menu_3, NULL_MENU, NULL_MENU, NULL, NULL, "I love Zhang Yun!\n");
+MENU_ITEM( Menu_2, (10), (3), Menu_3, Menu_1, NULL_MENU, NULL_MENU, NULL, NULL, "I am Second\n");
+MENU_ITEM( Menu_3, (15), (4), Menu_1, Menu_2, NULL_MENU, NULL_MENU, NULL, NULL, "I am Third\n");
 //MENU_ITEM(Menu_1_1, Menu_1_2, Menu_1_2, NULL_MENU, NULL_MENU, NULL, NULL, "1.1");
 //MENU_ITEM(Menu_1_2, Menu_1_1, Menu_1_1, NULL_MENU, NULL_MENU, NULL, NULL, "1.2");
 
